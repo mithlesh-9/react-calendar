@@ -1,0 +1,254 @@
+.empty {
+    background-color: #9f9c9c5e;
+    opacity: 0.4;
+}
+
+button {
+    cursor: pointer;
+}
+
+.btns-group {
+width: 100%;
+display: flex;
+
+.today-btn {
+    background: transparent;
+    border: 2px solid rgb(0, 81, 255);
+    color: rgb(0, 81, 255);
+    padding: .8em 3em;
+    margin-left: auto;
+    font-weight: bolder;
+    font-size: 1em;
+    transition: .5s;
+
+
+    &:hover{
+        background: rgb(0, 81, 255);
+        color: #fff; 
+    }
+}
+}
+
+
+
+tr:hover {
+    background: rgba(212, 212, 212, 0.15);
+}
+
+._heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+
+    .month-name {
+        font-size: 2em;
+    }
+    
+    button {
+        background: transparent;
+        border: none;
+
+        img {
+            height: 25px;
+            width: 25px;
+            padding: 1em;
+        }
+    }
+}
+
+.calendar-day {
+    position: relative;
+    overflow: hidden;
+    &.clickable {
+        cursor: pointer;
+    }
+
+    span {
+        transition: .5s;
+        position: absolute;
+        right: 15px;
+        top: 10px;
+        color: rgb(151, 144, 144);
+
+        &:hover {
+            color: rgb(82, 82, 82);
+        }
+    }
+    small {
+        position: absolute;
+        left: 15px;
+        top: 10px;
+        border-radius: 50%;
+        background: rgba(192, 65, 150, 0.883);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 13px;
+        color: #fff;
+        font-weight: bold;
+        padding: 5px 8px;
+        height: 15px;
+        width: 10px;
+    }
+    &.today {
+        background: rgba(9, 139, 179, 0.164); 
+ 
+        span {
+            font-size: 1.5em;
+            color: rgb(165, 11, 157);
+        }
+     }
+
+    &.selected {
+        background: #ff73f529;
+    }
+     .dots{
+         position: absolute;
+         bottom:0;
+         left: 2px;
+         bottom:2px;
+         height: 20px;
+         width: 70%;
+         overflow: hidden;
+         }
+    .more-text {
+        position: absolute;
+        bottom: .6em;
+        color:#999;
+        font-weight: bold;
+        font-size: .8em;
+        right: 2px;
+        padding: 0 .2em;
+        background: #fff;
+    }
+     
+}
+
+.event-detail-badge,
+.dot {
+    display: inline-block;
+    border-radius: 50%;
+    width: 10px;
+    height: 10px;
+    margin: 2px;
+    bottom: 0;
+    box-shadow: inset 1px 0px 4px 0px #00000054;
+}
+.event-detail-badge {
+    margin: 0 10px;
+    border: 1px solid #fff;
+}
+
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    border-color: #99999947;
+
+    td {
+        height: 80px;
+        padding: 0;
+        margin: 0;
+        min-width: 40px;
+        &:last-child.calendar-day,
+        &:nth-child(1).calendar-day {
+            span {
+                color: rgba(240, 2, 2, 0.603);
+            }
+        }
+    }
+
+    thead {
+        tr {
+            
+
+            th {
+                padding: .5em 0;
+                color: #111;
+                cursor: pointer;
+
+                &:hover {
+                    background: rgba(202, 202, 202, 0.192);
+                }
+
+                &:nth-child(1),
+                &:last-child {
+                    color: rgba(240, 2, 2, 0.603);
+                }
+            }
+            
+
+        }
+    }
+}
+
+
+tr {
+    width: 100%;
+}
+.events-display {
+    background-color: #555;
+    box-shadow: inset 0 0 15px 0 rgba(0, 0, 0, 0.5);
+    color: #fff;
+    transition: animation .45s;
+    animation: fadeIn .45s ;
+
+}
+.displayed-event {
+    padding: 5px 0;
+    cursor: pointer;
+}
+
+
+@media only screen and (max-width: 650px ) {
+    .calendar-day {
+   
+        span {
+            transition: .5s;
+            position: absolute;
+            right: 15px;
+            top: 10px;
+            color: rgb(151, 144, 144);
+        }
+        small {
+            top: initial;
+            left: 4px;
+            height: 15px;
+            width: 10px;
+            bottom:4px;
+        }
+
+         .dots{
+            display: none;
+         }
+
+         .more-text {
+            display: none;
+         }
+         
+    }
+}
+
+
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+
+    }
+    20% {
+        opacity: .2;
+    } 
+    40% {
+        opacity: .4;
+    }
+    60% {
+        opacity: .6;
+    }
+    80% {
+        opacity: .8;
+    } 
+    100% {
+        opacity: 100;
+    }
+}
