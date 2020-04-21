@@ -1,4 +1,4 @@
-import React,{ Component }  from 'react';
+import React,{ PureComponent }  from 'react';
 import moment from 'moment'
 import './Calendar.scss'
 import Next from '../assets/right.svg'
@@ -7,7 +7,7 @@ import Prev from '../assets/left.svg'
 
 
 
-class Calendar extends Component {
+class Calendar extends PureComponent {
 
     state = {
         weekdaysShort: moment.weekdaysShort(),
@@ -16,7 +16,9 @@ class Calendar extends Component {
         displayedEvents: [],
         displayRow: '',
         displayDay:'',
-        view:'week',
+        view:'day',
+        dayviewstart:'6:00',
+        dayviewend:'20:59',
         events: [
             {   
                 id:1,
@@ -30,7 +32,28 @@ class Calendar extends Component {
             },
             {   
                 id:3,
-                start: moment().format("MM-DD-YYYY")
+                start: new Date('2020-04-21 13:30'),
+                end: new Date('2020-04-21 20:00')
+            },
+            {   
+                id:4,
+                start: new Date('2020-04-21 6:30'),
+                end: new Date('2020-04-21 10:00')
+            },
+            {   
+                id:5,
+                start: new Date('2020-04-21 6:00'),
+                end: new Date('2020-04-21 6:45')
+            },
+            {   
+                id:6,
+                start: new Date('2020-04-21 6:00'),
+                end: new Date('2020-04-21 7:45')
+            },
+            {   
+                id:7,
+                start: new Date('2020-04-21 6:00'),
+                end: new Date('2020-04-21 7:45')
             },
         ]
     }
@@ -147,7 +170,7 @@ class Calendar extends Component {
                             style={{background:eventData.badgeColor ? eventData.badgeColor : '#0051ff'}}
                             onClick={(event)=>this.eventClicked({event,data:eventData})}
                         >
-                            {eventData.start}
+                            {moment(eventData.start).format('l')}
                         </div>
                     ))}
                 </td>
@@ -169,18 +192,33 @@ class Calendar extends Component {
     onNext = () => {
         this.setState((state)=>({
             dateObject: moment(state.dateObject).add(1,'M'),
-            displayedEvents: [],
-            displayRow: '',
-            displayDay:'',
         }))
+        this.clearEventsDisplayed()
     }
 
     onPrev = () => {
         this.setState((state)=>({
             dateObject: moment(state.dateObject).subtract(1,'M'),
+        }))
+        this.clearEventsDisplayed()
+    }
+
+    clearEventsDisplayed = () => {
+        this.setState(()=>({
             displayedEvents: [],
             displayRow: '',
             displayDay:'',
+        }))
+    }
+    onNextDay = () => {
+        this.setState((state)=>({
+            dateObject: moment(state.dateObject).add(1,'day'),
+        }))
+    }
+
+    onPrevDay = () => {
+        this.setState((state)=>({
+            dateObject: moment(state.dateObject).subtract(1,'day'),
         }))
     }
 
@@ -219,11 +257,109 @@ class Calendar extends Component {
             dateObject: moment(state.dateObject).add(1,'weeks'),
         }))
     }
-
+ 
     onPrevWeek = () => {
         this.setState((state)=>({
             dateObject: moment(state.dateObject).subtract(1,'weeks'),
         }))
+    }
+
+    hoursInBetween = () => {
+        const { dayviewstart, dayviewend } = this.state
+        const hours = this.getAllHours(dayviewstart, dayviewend)
+        return hours.map(hour => (
+            <div className="hour" key={hour}>
+                <div className="hour-space"><span id="hour-txt">{hour}</span></div>
+                <div className="hour-space"></div>
+            </div>
+        ))
+
+    }
+
+    getAllHours = (start = '0:00',end = '23:59') => {
+        let hours = []
+        const startN = Number(start.split(':')[0])
+        const endN = Number(end.split(':')[0])
+        if(startN < endN ) {
+            let i;
+            for(i = startN; i <= endN; i++) {
+                hours.push(this.convert24hrsTo12hrs(i))
+            }
+        }
+        return hours
+    }
+
+    convert24hrsTo12hrs = (time,min = '') => {
+       return time > 12 ? `${time - 12}${min ? `:${min < 9 ? `0${min}` : min}`: ''} PM` : `${time === 0 ? 12 : time}${min ? `:${min < 9 ? `0${min}` : min}`: ''} AM` 
+    }
+
+    componentDidUpdate(prevProps,prevState) {
+        const { view } = this.state
+        if(view !== prevState.view) {
+            this.clearEventsDisplayed()
+        }
+    }
+
+    calculateMin = (startH,startM,endH,endM) => {
+        const start = startH * 60 + startM
+        const end = endH * 60 + endM
+        return end - start
+    }
+
+    doesPrevOverlap = (index,nowStartH,nowStartM,nowEndH,nowEndM) => {
+        const events = this.getEventsByDate(this.state.dateObject)
+        let tempEvents = events.slice(0,index)
+        const nowStartTotal = nowStartH * 60 + nowStartM;
+        const nowEndTotal = nowEndH * 60 + nowEndM;
+        const matchedEvents = tempEvents.filter(event => {
+            const start = new Date(event.start)
+            const end = new Date(event.end)
+            const startHour = start.getHours()
+            const startMin = start.getMinutes()
+            const endHour = end.getHours()
+            const endMin = end.getMinutes()
+            const prevStartTotal = startHour * 60 + startMin
+            const prevEndTotal = endHour * 60 + endMin
+            return (nowStartTotal >= prevStartTotal && nowStartTotal <= prevEndTotal) || (nowEndTotal >= prevStartTotal && nowEndTotal <= prevEndTotal)
+        })
+        return matchedEvents.length
+    }
+
+    getDayEvents = (date) => {
+        const { dayviewstart, dayviewend } = this.state
+        const startN = Number(dayviewstart.split(':')[0])
+        const events = this.getEventsByDate(date)
+
+        return events.map((event,i) => {
+            const start = new Date(event.start)
+            const end = new Date(event.end)
+            const startHour = start.getHours()
+            const startMin = start.getMinutes()
+            const endHour = end.getHours()
+            const endMin = end.getMinutes()
+            const paddingFromTop = startHour - startN 
+            const height = this.calculateMin(startHour,startMin,endHour,endMin)
+            let paddingFromLeft = 0
+            const matchedNumberOfEvents =  this.doesPrevOverlap(i,startHour,startMin,endHour,endMin)
+            matchedNumberOfEvents > 0 ? paddingFromLeft = matchedNumberOfEvents * 205 : paddingFromLeft = 0
+            return (
+            <div 
+                className="day-event"
+                key={event.id}
+                style={{
+                top:`${paddingFromTop * 2 * 30 + .99 + startMin}px`,
+                left:`${75 + paddingFromLeft}px`,
+                height:`${height - .99}px`,
+                width:'200px',
+                background:'rgba(255, 227, 168, 0.79)',
+                outline: 'rgb(233, 169, 40) solid .1px'
+                }}
+             >
+                <span>{this.convert24hrsTo12hrs(startHour,startMin)}</span>
+                <span className="text">Hello</span>
+                <span>{this.convert24hrsTo12hrs(endHour,endMin)}</span>
+             </div>)
+            })
     }
 
 render() {
@@ -264,7 +400,7 @@ render() {
         {displayedEvents.length  > 0 && displayRow === `row-${i}` &&
         <tr>
             <td colSpan="7" className="events-display">
-                    {displayedEvents.map((eventData,i) => (<div key={eventData.id} onClick={(event)=>this.eventClicked({event,data:eventData})} className="displayed-event"><button style={{backgroundColor: eventData.badgeColor ? eventData.badgeColor : '#0051ff' }} className="event-detail-badge"></button>{eventData.start}</div>))}
+                    {displayedEvents.map((eventData,i) => (<div key={eventData.id} onClick={(event)=>this.eventClicked({event,data:eventData})} className="displayed-event"><button style={{backgroundColor: eventData.badgeColor ? eventData.badgeColor : '#0051ff' }} className="event-detail-badge"></button>{moment(eventData.start).format('l')}</div>))}
             </td>
         </tr>
         }
@@ -348,6 +484,26 @@ render() {
                         </tr>
                     </tbody>
                 </table>
+                </div>
+            }
+
+            {view === 'day' &&
+                <div>
+                <div className="_heading">
+                    <div>
+                    <button onClick={()=>this.onPrevDay()}><img src={Prev} alt="prev" /></button>
+                    </div>
+                        <div className="month-name" style={{fontSize:'1.8em'}}>{` ${dateObject.format("MMMM Do YYYY")}`}</div>
+                    <div>
+                    <button onClick={()=>this.onNextDay()}><img src={Next} alt="next" /></button>
+                    </div>
+                </div>
+                <div className="day-view">
+                    {this.getDayEvents(dateObject)}
+                    <div>                    
+                    {this.hoursInBetween()}
+                    </div>
+                </div>                
                 </div>
             }
         </div>
